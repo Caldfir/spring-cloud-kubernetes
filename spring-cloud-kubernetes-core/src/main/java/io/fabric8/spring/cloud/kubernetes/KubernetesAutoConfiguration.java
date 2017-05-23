@@ -23,6 +23,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.Endpoint;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -84,10 +86,16 @@ public class KubernetesAutoConfiguration {
         return new StandardPodUtils(client);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public KubernetesHealthIndicator kubernetesHealthIndicator(KubernetesClient client, StandardPodUtils podUtils) {
-        return new KubernetesHealthIndicator(client, podUtils);
+    @Configuration
+    @ConditionalOnClass(Endpoint.class)
+    protected static class KubernetesHealthConfig {
+
+      @Bean
+      @ConditionalOnMissingBean
+      public KubernetesHealthIndicator kubernetesHealthIndicator(KubernetesClient client, StandardPodUtils podUtils) {
+          return new KubernetesHealthIndicator(client, podUtils);
+      }
+
     }
 
     private static <D> D or(D dis, D dat) {
